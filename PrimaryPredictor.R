@@ -6,8 +6,6 @@
 ##--------------------------------------------
 
 ## 1. Preparation
-# Erase workspace to clean
-rm(list = ls())
 
 # Install necessary packages
 install.packages("bitops")
@@ -24,6 +22,9 @@ library(RCurl)
 library(RJSONIO)
 library(stringr)
 library(quanteda)
+
+# Erase workspace to clean
+rm(list = ls())
 
 # Save Datumbox API Information
 Datum.UserID <- "6746"
@@ -63,32 +64,32 @@ getSentiment <- function (text, key){
   sentiment = js$output$result
   
   ###################################
+#   
+#   data <- getURL(paste("http://api.datumbox.com/1.0/SubjectivityAnalysis.json?api_key=", key, "&text=",text, sep=""))
+#   
+#   js <- fromJSON(data, asText=TRUE);
+#   
+#   # get mood probability
+#   subject = js$output$result
+#   
+#   ##################################
+#   
+#   data <- getURL(paste("http://api.datumbox.com/1.0/TopicClassification.json?api_key=", key, "&text=",text, sep=""))
+#   
+#   js <- fromJSON(data, asText=TRUE);
+#   
+#   # get mood probability
+#   topic = js$output$result
+#   
+#   ##################################
+#   data <- getURL(paste("http://api.datumbox.com/1.0/GenderDetection.json?api_key=", key, "&text=",text, sep=""))
+#   
+#   js <- fromJSON(data, asText=TRUE);
+#   
+#   # get mood probability
+#   gender = js$output$result
   
-  data <- getURL(paste("http://api.datumbox.com/1.0/SubjectivityAnalysis.json?api_key=", key, "&text=",text, sep=""))
-  
-  js <- fromJSON(data, asText=TRUE);
-  
-  # get mood probability
-  subject = js$output$result
-  
-  ##################################
-  
-  data <- getURL(paste("http://api.datumbox.com/1.0/TopicClassification.json?api_key=", key, "&text=",text, sep=""))
-  
-  js <- fromJSON(data, asText=TRUE);
-  
-  # get mood probability
-  topic = js$output$result
-  
-  ##################################
-  data <- getURL(paste("http://api.datumbox.com/1.0/GenderDetection.json?api_key=", key, "&text=",text, sep=""))
-  
-  js <- fromJSON(data, asText=TRUE);
-  
-  # get mood probability
-  gender = js$output$result
-  
-  return(list(sentiment=sentiment,subject=subject,topic=topic,gender=gender))
+  return(sentiment)
 }
 
 #---------------------------------------------------------------------------------------------------
@@ -125,19 +126,18 @@ clean.text <- function(some_txt)
 
 
 ## Get results and perform sentiment analysis
-testTweets <- c("")
+testTweets <- c("Donald Sucks!", "I hate trump", "Trump is the best!", "Trump is going to be our president!")
 testResult <- getSentiment(test, Datum.APIKey)
 # Tweets <- 
 posTweets <- 0
 negTweets <- 0
 
-
-for(i in Tweets){
-  results <- getSentiment(i, Datum.APIKey)
-  if(results.sentiment == "positive"){
-    posTweets <- numPositive + 1
+for(i in 1:length(testTweets)){
+  sentiment <- getSentiment(testTweets[i], Datum.APIKey)
+  if(sentiment == "positive"){
+    posTweets <- posTweets + 1
   } else {
-    negTweets <- numNegative + 1
+    negTweets <- negTweets + 1
   }
 }
 
