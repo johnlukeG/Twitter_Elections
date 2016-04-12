@@ -17,6 +17,7 @@ install.packages("RJSONIO")
 install.packages("stringr")
 
 # Import necessary libraries
+library(ISLR)
 library(bitops)
 library(twitteR)
 library(RCurl)
@@ -121,5 +122,35 @@ clean.text <- function(some_txt)
   names(some_txt) = NULL
   return(some_txt)
 }
+
+
+## Get results and perform sentiment analysis
+testTweets <- c("")
+testResult <- getSentiment(test, Datum.APIKey)
+# Tweets <- 
+posTweets <- 0
+negTweets <- 0
+
+
+for(i in Tweets){
+  results <- getSentiment(i, Datum.APIKey)
+  if(results.sentiment == "positive"){
+    posTweets <- numPositive + 1
+  } else {
+    negTweets <- numNegative + 1
+  }
+}
+
+totalTweets <- sum(negTweets, posTweets, na.rm = TRUE)
+
+posRatio <- posTweets / totalTweets
+negRatio <- negTweets / totalTweets
+
+## Fit the linear regression model and plot results
+#lm.fit <- lm(medv ~ lstat)
+#confint(lm.fit)
+#predict(lm.fit, data.frame(lstate = c(5, 10, 15)), interval = "prediction")
+
+
 
 
