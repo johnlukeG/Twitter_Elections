@@ -126,25 +126,36 @@ clean.text <- function(some_txt)
 
 
 ## Get results and perform sentiment analysis
-testTweets <- c("Donald Sucks!", "I hate trump", "Trump is the best!", "Trump is going to be our president!")
-testResult <- getSentiment(test, Datum.APIKey)
+testTweets <- list(d1 = c("Donald Sucks!", "I hate trump", "Trump is the best!", "Trump is going to be our president!"),
+ d2 = c("Donald is pretty disappointing", "Trump is poop!", "Trump is so ugly", "Trump is a jabrone"),
+ d3 = c("Donald Trump is a mastermind", "Trump is a calzone", "Trump is so ugly", "Trump is a jabrone"),
+ d4 = c("Donald Rocks!", "I really dislike trump", "Trump is pretty smart", "Trump is a genius!"))
+
+
 # Tweets <- 
 posTweets <- 0
 negTweets <- 0
+neutralTweets <- 0
+
+
 
 for(i in 1:length(testTweets)){
-  sentiment <- getSentiment(testTweets[i], Datum.APIKey)
-  if(sentiment == "positive"){
-    posTweets <- posTweets + 1
-  } else {
-    negTweets <- negTweets + 1
-  }
+  day <- testTweets[i]
+      
+      sentiment <- getSentiment(testTweets[i,], Datum.APIKey)
+      if(sentiment == "positive"){
+        posTweets <- posTweets + 1
+      } else if(sentiment == "negative"){
+        negTweets <- negTweets + 1
+      } else {
+        neutralTweets <- neutralTweets + 1
+      }
+  
+  totalTweets <- sum(negTweets, posTweets, na.rm = TRUE)
+  posRatio <- posTweets / totalTweets
+  
+  ratios <- c(ratios, posRatio)
 }
-
-totalTweets <- sum(negTweets, posTweets, na.rm = TRUE)
-
-posRatio <- posTweets / totalTweets
-negRatio <- negTweets / totalTweets
 
 ## Fit the linear regression model and plot results
 #lm.fit <- lm(medv ~ lstat)
