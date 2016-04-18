@@ -1,0 +1,12 @@
+#!/bin/bash
+#PBS -N a.out
+#PBS -l select=1:ncpus=8:mpiprocs=1:interconnect=mx
+#PBS -j oe
+#PBS -l walltime=24:00:00
+#PBS -o consumerout.txt
+
+module load anaconda/2.5.0
+
+cd $PBS_O_WORKDIR/
+
+python consumer.py dsci002.palmetto.clemson.edu:6667 ElectionTwitter

@@ -47,6 +47,7 @@ filePointers = {
               "sanders":sandersFP,
               "cruz":cruzFP
             }
+print("Past the file pointers")
 
 def containsKeyword(keyword, fullText):
   """ Check Tweet for Keyword
@@ -94,11 +95,13 @@ def filterTweet(tweet):
       fileToWriteTo.write(tweet+"`")
 
 # Consume tweets and filter through them
+print("Right before loop")
 counter = 0
 for message in consumer:
+  print("Getting in the loop")
   e = json.loads(json.loads(message.value.encode('utf-8')))
   counter = counter + 1
-  print ("Tweet: " + counter)
+  print ("Tweet: " + str(counter))
   if u'text' in e:
     myText = e[u'text'].encode('utf-8')
     filterTweet(myText)
@@ -107,8 +110,8 @@ for message in consumer:
   print("======== \n")
 
 # Close all the file pointers
-for key in filePointers:
-  filePointers[key].close()
+# for key in filePointers:
+#   filePointers[key].close()
 
 
 
