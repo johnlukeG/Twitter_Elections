@@ -25,11 +25,6 @@ library(RJSONIO)
 library(stringr)
 library(quanteda)
 
-# Save Datumbox API Information
-Datum.UserID <- "6746"
-Datum.APIKey <- "3e68babb633d3bf80ed22b55345f068b"
-Datum.SubID  <- "6731"
-
 ## 2. Functions
 #---------------------------------------------------------------------------------------------------
 # Function: clean.text
