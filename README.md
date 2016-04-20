@@ -33,4 +33,4 @@ Using Tweets and Sentiment Analysis to determine the effect of positive and over
 ### Spring 2016 
 ![alt text][logo]
 
-[logo]: https://github.com/JLGarofal/Twitter_Elections/blob/master/Twitter_Exposure_Elections.pdf "CPSC 4820 Data Science Project Poster"
+[logo]: https://github.com/JLGarofal/Twitter_Elections/blob/master/Twitter_Exposure_Elections.png "CPSC 4820 Data Science Project Poster"
