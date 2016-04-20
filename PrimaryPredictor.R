@@ -6,13 +6,15 @@
 ##--------------------------------------------
 
 ## 1. Preparation
+# Erase workspace to clean
+rm(list = ls())
 
 # Install necessary packages
-install.packages("bitops")
-install.packages("twitteR")
-install.packages("RCurl")
-install.packages("RJSONIO")
-install.packages("stringr")
+# install.packages("bitops")
+# install.packages("twitteR")
+# install.packages("RCurl")
+# install.packages("RJSONIO")
+# install.packages("stringr")
 
 # Import necessary libraries
 library(ISLR)
@@ -23,75 +25,7 @@ library(RJSONIO)
 library(stringr)
 library(quanteda)
 
-# Erase workspace to clean
-rm(list = ls())
-
-# Save Datumbox API Information
-Datum.UserID <- "6746"
-Datum.APIKey <- "3e68babb633d3bf80ed22b55345f068b"
-Datum.SubID  <- "6731"
-
 ## 2. Functions
-#---------------------------------------------------------------------------------------------------
-# Function: getSentiment
-# Purpose : handles the queries we send to the API. It saves all the results we want to have 
-#           like sentiment, subject, topic and gender and returns them as a list. For every 
-#           request we have the same structure and the API is always requesting the API-Key 
-#           and the text to be analyzed. It then returns a JSON object of the structure
-# Source  : http://www.r-bloggers.com/sentiment-analysis-on-twitter-with-datumbox-api/
-#---------------------------------------------------------------------------------------------------
-getSentiment <- function (text, key){
-  
-  text <- URLencode(text);
-  
-  #save all the spaces, then get rid of the weird characters that break the API, then convert back 
-  #  the URL-encoded spaces.
-  text <- str_replace_all(text, "%20", " ");
-  text <- str_replace_all(text, "%\\d\\d", "");
-  text <- str_replace_all(text, " ", "%20");
-  
-  
-  if (str_length(text) > 360){
-    text <- substr(text, 0, 359);
-  }
-  ##########################################
-  
-  data <- getURL(paste("http://api.datumbox.com/1.0/TwitterSentimentAnalysis.json?api_key=", key, "&text=",text, sep=""))
-  
-  js <- fromJSON(data, asText=TRUE);
-  
-  # get mood probability
-  sentiment = js$output$result
-  
-  ###################################
-#   
-#   data <- getURL(paste("http://api.datumbox.com/1.0/SubjectivityAnalysis.json?api_key=", key, "&text=",text, sep=""))
-#   
-#   js <- fromJSON(data, asText=TRUE);
-#   
-#   # get mood probability
-#   subject = js$output$result
-#   
-#   ##################################
-#   
-#   data <- getURL(paste("http://api.datumbox.com/1.0/TopicClassification.json?api_key=", key, "&text=",text, sep=""))
-#   
-#   js <- fromJSON(data, asText=TRUE);
-#   
-#   # get mood probability
-#   topic = js$output$result
-#   
-#   ##################################
-#   data <- getURL(paste("http://api.datumbox.com/1.0/GenderDetection.json?api_key=", key, "&text=",text, sep=""))
-#   
-#   js <- fromJSON(data, asText=TRUE);
-#   
-#   # get mood probability
-#   gender = js$output$result
-  
-  return(sentiment)
-}
-
 #---------------------------------------------------------------------------------------------------
 # Function: clean.text
 # Purpose : We need this function because of the problems occurring when the tweets contain some 
@@ -102,11 +36,15 @@ clean.text <- function(some_txt)
 {
   some_txt = gsub("(RT|via)((?:\\b\\W*@\\w+)+)", "", some_txt)
   some_txt = gsub("@\\w+", "", some_txt)
-  some_txt = gsub("[[:punct:]]", "", some_txt)
-  some_txt = gsub("[[:digit:]]", "", some_txt)
+  some_txt = gsub("([`|'])|[[:punct:]]", "\\1", some_txt)
+#  some_txt = gsub("[[:punct:]]", "", some_txt)
   some_txt = gsub("http\\w+", "", some_txt)
-  some_txt = gsub("[ \t]{2,}", "", some_txt)
-  some_txt = gsub("^\\s+|\\s+$", "", some_txt)
+  some_txt = gsub("[[:digit:]]", " ", some_txt)
+  #some_txt = gsub("[ \t]{2,}", "", some_txt)
+  #some_txt = gsub("^\\s+|\\s+$", "", some_txt)
+  some_txt = gsub("\n", " ", some_txt)
+  some_txt = gsub("`", "\n", some_txt)
+  some_txt = gsub("(RT|via)((?:\\b\\W*@\\w+)+)", "", some_txt)
   
   # define "tolower error handling" function
   try.tolower = function(x)
@@ -126,41 +64,59 @@ clean.text <- function(some_txt)
 
 
 ## Get results and perform sentiment analysis
-testTweets <- list(d1 = c("Donald Sucks!", "I hate trump", "Trump is the best!", "Trump is going to be our president!"),
- d2 = c("Donald is pretty disappointing", "Trump is poop!", "Trump is so ugly", "Trump is a jabrone"),
- d3 = c("Donald Trump is a mastermind", "Trump is a calzone", "Trump is so ugly", "Trump is a jabrone"),
- d4 = c("Donald Rocks!", "I really dislike trump", "Trump is pretty smart", "Trump is a genius!"))
 
+# Set Positive and Negative Words
+# Credit for documents:
+# ;   Minqing Hu and Bing Liu. "Mining and Summarizing Customer Reviews." 
+# ;       Proceedings of the ACM SIGKDD International Conference on Knowledge 
+# ;       Discovery and Data Mining (KDD-2004), Aug 22-25, 2004, Seattle, 
+# ;       Washington, USA, 
+posWords <- readLines("positive-words.txt")
+negWords <- readLines("negative-words.txt")
 
-# Tweets <- 
+# Read in file and clean it up for sentiment analysis
+fileName <- "sandersTweets.txt"
+actFile <- readChar(fileName, file.info(fileName)$size)
+cleanFile <- clean.text(actFile)
+cleanFileCon <- textConnection(cleanFile)
+
+Tweets <- read.table(cleanFileCon,sep="\n", quote="", row.names = NULL, stringsAsFactors = FALSE,fill=TRUE, header=FALSE)
+
 posTweets <- 0
 negTweets <- 0
-neutralTweets <- 0
+neutTweets <- 0
+posRatio <- 0
+negRatio <- 0
+neutTweets <- 0
 
+# Read through every tweet and determine whether it was positive, negative, or neutral
+for(i in unlist(Tweets)){
+  word_list <- strsplit(i, " ")
+  words <- unlist(word_list)
+  positive_matches <- match(words, posWords)
+  negative_matches <- match(words, negWords)
+  positive_matches <- positive_matches[!is.na(positive_matches)]
+  negative_matches <- negative_matches[!is.na(negative_matches)]
+  score = sum(positive_matches) - sum(negative_matches)
 
-
-for(i in 1:length(testTweets)){
-  day <- testTweets[i]
-      
-      sentiment <- getSentiment(testTweets[i,], Datum.APIKey)
-      if(sentiment == "positive"){
-        posTweets <- posTweets + 1
-      } else if(sentiment == "negative"){
-        negTweets <- negTweets + 1
-      } else {
-        neutralTweets <- neutralTweets + 1
-      }
+  if(score > 0){
+    posTweets <- posTweets + 1
+  } else if(score < 0){
+    negTweets <- negTweets + 1
+  } else {
+    neutTweets <- neutTweets + 1
+  }
   
-  totalTweets <- sum(negTweets, posTweets, na.rm = TRUE)
-  posRatio <- posTweets / totalTweets
   
-  ratios <- c(ratios, posRatio)
 }
 
-## Fit the linear regression model and plot results
-#lm.fit <- lm(medv ~ lstat)
-#confint(lm.fit)
-#predict(lm.fit, data.frame(lstate = c(5, 10, 15)), interval = "prediction")
+totalTweets <- sum(negTweets, posTweets, neutTweets, na.rm = TRUE)
+
+#calculate ratios
+posRatio <- posTweets / totalTweets
+negRatio <- negTweets / totalTweets
+neutRatio <- neutTweets / totalTweets
+
 
 
 
