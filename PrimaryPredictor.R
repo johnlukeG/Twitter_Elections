@@ -5,11 +5,10 @@
 ##  Purpose  :: Analyzing Text
 ##--------------------------------------------
 
-## 1. Preparation
 # Erase workspace to clean
 rm(list = ls())
 
-# Install necessary packages
+## Install necessary packages
 # install.packages("bitops")
 # install.packages("twitteR")
 # install.packages("RCurl")
